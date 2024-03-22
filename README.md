@@ -1,4 +1,4 @@
-# dotfiles
+# Dotfiles
 jgantner user dotfiles
 
 # Automated Setup Script
@@ -7,7 +7,7 @@ This script automates the setup process for a Linux environment, focusing on Ubu
 
 ## Prerequisites
 
-- This script is designed for Ubuntu Linux.
+- This script is designed for Ubuntu.
 - Ensure that you have sudo privileges to execute the script.
 
 ## Usage
