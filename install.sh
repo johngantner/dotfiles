@@ -1,12 +1,16 @@
 #!/bin/bash
 
-# get username that called script
-echo $SUDO_USER
-ME=$SUDO_USER
-
 # Check if running as root
 if [ "$(id -u)" -eq 0 ]; then
     echo "Please run this script as a non-root user."
+    exit 1
+fi
+
+# Validate sudo usage and get the invoking user
+if [ -n "$SUDO_USER" ]; then
+    ME="$SUDO_USER"
+else
+    echo "Please run this script using sudo."
     exit 1
 fi
 
@@ -18,64 +22,57 @@ fi
 
 # Package installs
 sudo apt update
-sudo apt install -y dnsutils nmap
+sudo apt install -y dnsutils nmap git bastet curl
 
 # Install Anaconda
-if [[ -e $(ls Anaconda3*.sh 2> /dev/null | head -1) ]]; then
-        echo "Installer found, running it"
-        bash Anaconda3-2024.02-1-Linux-x86_64.sh -b -p /home/$ME/anaconda3
-        echo "PATH=$PATH:/home/kduncan/anaconda3/bin" >> /home/$ME/.profile
-
+anaconda_installer="Anaconda3-2024.02-1-Linux-x86_64.sh"
+if [ -e "$anaconda_installer" ]; then
+    echo "Installer found, running it"
+    bash "$anaconda_installer" -b -p "/home/$ME/anaconda3"
 else
-        echo "Downloading anaconda installer"
-        curl -O https://repo.anaconda.com/archive/Anaconda3-2024.02-1-Linux-x86_64.sh                bash Anaconda3-2024.02-1-Linux-x86_64.sh -b -p /home/$ME/anaconda3
-        echo "PATH=$PATH:/home/kduncan/anaconda3/bin" >> /home/$ME/.profile
+    echo "Downloading Anaconda installer"
+    curl -O "https://repo.anaconda.com/archive/$anaconda_installer"
 fi
 
-# Command line games installation
-sudo apt install -y dnsutils nmap bastet
+# Add Anaconda to PATH
+echo "export PATH=\$PATH:/home/$ME/anaconda3/bin" >> "/home/$ME/.profile"
 
 # Git configuration
 git config --global user.name "John Gantner"
-git config --global user.name "" git config --global user.email "jgantner73@gmail.com"
+git config --global user.email "jgantner73@gmail.com"
 git config --global core.editor "vim"
 git config --global help.autocorrect 1
 
 # Symbolic link for .gitconfig
-ln -sf /home/jgantner/dotfiles/gitfiles ~/.gitconfig
+ln -sf "/home/$ME/dotfiles/gitfiles" "/home/$ME/.gitconfig"
 
 # Bash aliases
-echo 'alias ll="ls -al"' >> /home/$ME/.bashrc
+echo 'alias ll="ls -al"' >> "/home/$ME/.bashrc"
 
 # Symbolic link for .bashrc
-ln -sf /home/jgantner/dotfiles ~/.bashrc
+ln -sf "/home/$ME/dotfiles" "/home/$ME/.bashrc"
 
 # SSH public keys
-if [ ! -d ~/.ssh ]; then
-    mkdir ~/.ssh
-fi
-
-# Symbolic link for authorized_keys
-ln -sf /home/jgantner/authorized_keys ~/.ssh/authorized_keys
+mkdir -p "/home/$ME/.ssh"
+ln -sf "/home/$ME/authorized_keys" "/home/$ME/.ssh/authorized_keys"
 
 # SSH config
-echo -e "Host fry.cs.wright.edu\n\tUser your_w_number\n\tIdentityFile ~/.ssh/id_rsa" > ~/.ssh/config
+echo -e "Host fry.cs.wright.edu\n\tUser your_w_number\n\tIdentityFile ~/.ssh/id_rsa" > "/home/$ME/.ssh/config"
 
 # Vim customizations
 # Install Vundle
-git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+git clone https://github.com/VundleVim/Vundle.vim.git "/home/$ME/.vim/bundle/Vundle.vim"
 
 # Install a color scheme
-mkdir -p ~/.vim/colors
-curl -o ~/.vim/colors/jellybeans.vim https://raw.githubusercontent.com/nanotech/jellybeans.vim/master/colors/jellybeans.vim
+mkdir -p "/home/$ME/.vim/colors"
+curl -o "/home/$ME/.vim/colors/jellybeans.vim" "https://raw.githubusercontent.com/nanotech/jellybeans.vim/master/colors/jellybeans.vim"
 
-# Install a Vim improvement plugin
-# Install NERDTree
-echo "Installing NERDTree..."
+# Install Vim plugins
+echo "Installing Vim plugins..."
 vim -c "PluginInstall" -c "qa"
 
 # Additional package installs for Vim plugins
 vim +PluginInstall +qall
-~/.vim/bundle/YouCompleteMe/install.py --clangd-completer
+/home/$ME/.vim/bundle/YouCompleteMe/install.py --clangd-completer
 
 echo "Setup complete. Remember to restart your terminal for changes to take effect."
