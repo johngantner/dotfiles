@@ -38,8 +38,11 @@ fi
 echo "export PATH=\$PATH:/home/$ME/anaconda3/bin" >> "/home/$ME/.profile"
 
 # Git configuration
-git config --global user.name "John Gantner"
-git config --global user.email "jgantner73@gmail.com"
+read -p "Enter your Git username: " git_username
+read -p "Enter your Git email: " git_email
+
+git config --global user.name "$git_username"
+git config --global user.email "$git_email"
 git config --global core.editor "vim"
 git config --global help.autocorrect 1
 
@@ -57,7 +60,14 @@ mkdir -p "/home/$ME/.ssh"
 ln -sf "/home/$ME/authorized_keys" "/home/$ME/.ssh/authorized_keys"
 
 # SSH config
-echo -e "Host fry.cs.wright.edu\n\tUser your_w_number\n\tIdentityFile ~/.ssh/id_rsa" > "/home/$ME/.ssh/config"
+read -p "Enter SSH user for fry.cs.wright.edu: " ssh_user
+read -p "Enter SSH identity file path (leave empty for default): " ssh_identity
+
+ssh_config="/home/$ME/.ssh/config"
+echo -e "Host fry.cs.wright.edu\n\tUser $ssh_user" >> "$ssh_config"
+if [ -n "$ssh_identity" ]; then
+    echo -e "\tIdentityFile $ssh_identity" >> "$ssh_config"
+fi
 
 # Vim customizations
 # Install Vundle
